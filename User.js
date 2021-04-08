@@ -19,13 +19,13 @@ const userSchema = new Schema({
     required: true
   },
   groups: {
-    type: [String],
+    type: [Object],
   },
   pendingrequests: {
     type: [String],
   },
   friends: {
-    type: [String],
+    type: [Object],
   },
   password: {
     type: String,

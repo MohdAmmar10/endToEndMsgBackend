@@ -3,7 +3,7 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const keys = {
-    mongoUrl:'mongodb+srv://admin:O91qZr3jMRcG4V82@cluster0.9bjhc.mongodb.net/User?retryWrites=true&w=majority',
+    mongoUrl:'mongodb+srv://admin:O91qZr3jMRcG4V82@cluster0.9bjhc.mongodb.net/dbMessage?retryWrites=true&w=majority',
     secretOrKey: "secret"
 }
 // Load input validation
@@ -76,7 +76,7 @@ router.post("/login", (req, res) => {
   // Check password
       bcrypt.compare(password, user.password).then(isMatch => {
         if (isMatch) {
-          // User matched
+          // User matched 
           // Create JWT Payload
           const payload = {
             id: user.id,

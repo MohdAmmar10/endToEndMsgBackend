@@ -1,35 +1,35 @@
 const mongoose = require("mongoose")
 var Schema  =  mongoose.Schema;
 
-const Chats = {}
-function dynamicChatSchema(roomId){
-    var chatSchema = new Schema({
+const Groups = {}
+function dynamicChatSchema(groupId){
+    var groupSchema = new Schema({
             message: String,
             from: String,
             to: String,
             timestamp: String,
     });     
-    return mongoose.model(roomId, chatSchema);
+    return mongoose.model(groupId, groupSchema);
 }
 
 
 // this function will store the model in the Addresses object
 // on subsequent calls, if it exists, it will return it from the array
-function getChatsModel(roomId) {
-    if(roomId==="one")
+function getGroupsModel(groupId) {
+    if(groupId==="one")
     {
         getallChats()
     }
-    if (!Chats[roomId]) {
-      Chats[roomId] =  new dynamicChatSchema(roomId)
+    if (!Groups[groupId]) {
+        Groups[groupId] =  new dynamicChatSchema(groupId)
     }
-    return Chats[roomId]
+    return Groups[groupId]
   }
   function getallChats()
   {
-        console.log(Chats)
+        console.log(Groups)
   }
   
 
 //no we export dynamicSchema function
-module.exports = getChatsModel;
+module.exports = getGroupsModel;
