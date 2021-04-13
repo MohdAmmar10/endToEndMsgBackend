@@ -537,7 +537,7 @@ app.post('/group/create',(req,res) =>{
     })
     // console.log(group1)
     // console.log("done")
-    res.status(200).send("Done")
+    res.status(200).send({groupId:groupid})
 })
 
 app.post('/chat/create',(req,res) =>{
@@ -550,11 +550,12 @@ app.post('/chat/create',(req,res) =>{
     chatname = chatname.toLowerCase()
     var Chat = require("./chat.js")
     var chat1 =  Chat(chatname)
-    var nothing ={}
+    var nothing = {}
     console.log(users)
     chat1.create(nothing, (err,data) => {
         
     })
+    
     console.log(chat1)
 
     // chat1.create(alldata, (err,data) => {
@@ -575,7 +576,54 @@ app.post('/chat/create',(req,res) =>{
     // User.updateOne(query, updateDocument);
 
     console.log("done")
+    chat1.deleteMany(nothing, (err,data) => {
+        console.log("err",err,data)
+    })
     res.status(200).send("Done")
+})
+
+app.post('/messages/delete', (req,res) => {
+    const users = req.body
+    let chatname=`chat${users.username}${users.username2}`
+    chatname = chatname.toLowerCase()
+    
+    var Chat = require("./chat.js")
+    var chat1 =  Chat(chatname)
+    var nothing ={}
+    chat1.deleteMany(nothing, (err,data) => {
+        console.log("err",err,data)
+        if(err)
+        {
+            res.status(500).send(err)
+        }
+        else 
+        {
+            res.status(201).send(data)
+        }
+    })
+})
+
+
+app.post('/messages/group/delete', (req,res) => {
+    const data = req.body
+    let groupName = data.groupName
+    groupName = groupName.toLowerCase()
+    
+    var Group =require("./Group.js")
+    var group1 =  Group(groupName)
+
+    var nothing ={}
+    group1.deleteMany(nothing, (err,data) => {
+        console.log("err",err,data)
+        if(err)
+        {
+            res.status(500).send(err)
+        }
+        else 
+        {
+            res.status(201).send(data)
+        }
+    })
 })
 
 app.post('/messages/new', (req,res) => {
