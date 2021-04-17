@@ -6,6 +6,10 @@ const userSchema = new Schema({
     type: String,
     required: true
     },
+  pubK: {
+    type: String,
+    required: false
+  },
   name: {
     type: String,
     required: true

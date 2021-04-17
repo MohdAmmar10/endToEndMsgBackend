@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto")
 const keys = {
     mongoUrl:'mongodb+srv://admin:O91qZr3jMRcG4V82@cluster0.9bjhc.mongodb.net/dbMessage?retryWrites=true&w=majority',
     secretOrKey: "secret"
@@ -96,6 +97,8 @@ router.post("/login", (req, res) => {
               });
             }
           );
+          
+
         } else {
           return res
             .status(400)

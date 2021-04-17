@@ -6,7 +6,7 @@ const cors =require("cors")
 const bodyParser =require("body-parser")
 const passport =require("passport")
 const users =require("./users.js")
-
+const crypto = require("crypto")    
 const User = require("./User");
 // import mongoose from "mongoose"
 // import Messages from './dbMessages.js'
@@ -423,6 +423,43 @@ app.post('/group/sync', (req,res) => {
         }
         else 
         {
+            const m = []
+            data.map(d => (  
+                m.push(d.message)
+            ))
+            console.log("m",m)
+            for(let i=0;i<m.length;i++)
+            {
+                const bPayload = Buffer.from(m[i],'base64').toString('hex')
+                const bIV = bPayload.substr(0,32)
+                const bencrypted = bPayload.substr(32, bPayload.length -32 -32)
+                const bauth_tag = bPayload.substr(bPayload.length -32, 32)
+      
+                console.table({
+                  bIV: bIV,
+                  bencrypted: bencrypted,
+                  bauth_tag: bauth_tag
+                })
+      
+                try {
+                    const bsK = '48a483ef009983f0d87de4e56f2d84552e7fb3f67d054921be21f500ef42aeb7'
+                    const decipher = crypto.createDecipheriv('aes-256-gcm',Buffer.from(bsK,'hex'),Buffer.from(bIV,'hex'))
+                    decipher.setAuthTag(Buffer.from(bauth_tag,'hex'))
+                    let decrypted = decipher.update(bencrypted,'hex','utf-8')
+                    decrypted+= decipher.final('utf-8')
+                    console.log("Decrypted",decrypted)
+                    m[i]=decrypted
+                } catch (error) {
+                  console.log(error.message)
+                  
+                }   
+            }
+            for(let i=0;i<data.length;i++)
+            {
+                data[i].message=m[i]
+                console.log(data[i].message)
+            }
+                
             res.status(200).send(data)
         }
     })
@@ -452,14 +489,112 @@ app.post('/chat/sync', (req,res) => {
         }
         else 
         {
+            
+            const m = []
+            data.map(d => (  
+                m.push(d.message)
+            ))
+            console.log("m",m)
+            for(let i=0;i<m.length;i++)
+            {
+                const bPayload = Buffer.from(m[i],'base64').toString('hex')
+                const bIV = bPayload.substr(0,32)
+                const bencrypted = bPayload.substr(32, bPayload.length -32 -32)
+                const bauth_tag = bPayload.substr(bPayload.length -32, 32)
+      
+                console.table({
+                  bIV: bIV,
+                  bencrypted: bencrypted,
+                  bauth_tag: bauth_tag
+                })
+      
+                try {
+                    const bsK = '48a483ef009983f0d87de4e56f2d84552e7fb3f67d054921be21f500ef42aeb7'
+                    const decipher = crypto.createDecipheriv('aes-256-gcm',Buffer.from(bsK,'hex'),Buffer.from(bIV,'hex'))
+                    decipher.setAuthTag(Buffer.from(bauth_tag,'hex'))
+                    let decrypted = decipher.update(bencrypted,'hex','utf-8')
+                    decrypted+= decipher.final('utf-8')
+                    console.log("Decrypted",decrypted)
+                    m[i]=decrypted
+                } catch (error) {
+                  console.log(error.message)
+                  
+                }   
+            }
+            for(let i=0;i<data.length;i++)
+            {
+                data[i].message=m[i]
+                console.log(data[i].message)
+            }
+                
+    
+        console.log("data",data)
             res.status(200).send(data)
         }
     })
 })
 
+
+app.post('/chat/new/sync', (req,res) => {
+    const chatname = req.body.roomId
+    const findall = {sort: { _id: -1 }}
+    var Chat =require("./chat.js")
+    var chat1 =  Chat(chatname)
+
+    // const mongoose = require("mongoose")
+
+    // const chatSchema = mongoose.Schema({
+    //     message: String,
+    //     from: String,
+    //     to: String,
+    //     timestamp: String,
+    // });
+    // dyChat = mongoose.model(chatname,chatSchema)
+    // find({}).sort({_id:-1}).limit(1);
+    
+    chat1.find({}, { sort: { _id: -1 }, limit: 1 ,message:1},(err,data) => {
+        if(err)
+        {
+            res.status(500).send(err)
+        }
+        else 
+        {
+
+        console.log("data",data[0].message)
+        let msg = data[0].message
+        const bPayload = Buffer.from(msg,'base64').toString('hex')
+                const bIV = bPayload.substr(0,32)
+                const bencrypted = bPayload.substr(32, bPayload.length -32 -32)
+                const bauth_tag = bPayload.substr(bPayload.length -32, 32)
+      
+                console.table({
+                  bIV: bIV,
+                  bencrypted: bencrypted,
+                  bauth_tag: bauth_tag
+                })
+      
+                try {
+                    const bsK = '48a483ef009983f0d87de4e56f2d84552e7fb3f67d054921be21f500ef42aeb7'
+                    const decipher = crypto.createDecipheriv('aes-256-gcm',Buffer.from(bsK,'hex'),Buffer.from(bIV,'hex'))
+                    decipher.setAuthTag(Buffer.from(bauth_tag,'hex'))
+                    let decrypted = decipher.update(bencrypted,'hex','utf-8')
+                    decrypted+= decipher.final('utf-8')
+                    console.log("Decrypted",decrypted)
+                    msg=decrypted
+                } catch (error) {
+                  console.log(error.message)
+                  
+                }   
+            console.log(msg)
+            res.status(200).send(msg)
+        }
+    })
+})
+
+
 async function setFriends(user1,user2,chatname){
     const User = require("./User");
-    const query = {username: user1}
+    const query = {username: user1} 
     console.log(user1,user2,chatname)
     const updateDocument = { $push: {friends: {[user2]: chatname}}}
     console.log(query,updateDocument)
@@ -575,6 +710,7 @@ app.post('/chat/create',(req,res) =>{
     // const updateDocument = { $push: {friends: {[user2]: chatname}}}
     // User.updateOne(query, updateDocument);
 
+
     console.log("done")
     chat1.deleteMany(nothing, (err,data) => {
         console.log("err",err,data)
@@ -631,7 +767,42 @@ app.post('/messages/new', (req,res) => {
     const alldata = req.body
     var Chat =require("./chat.js")
     var chat1 =  Chat(chatname)
+    console.log(alldata.message)
 
+
+        // const a = crypto.createECDH('secp256k1')
+        //   a.generateKeys()
+        //   const aPKBase64 = a.getPublicKey().toString('base64')
+        //   console.log("a",a,"apk",aPKBase64)
+        //   const aPRK64 = a.getPrivateKey().toString('base64')
+        //   console.log("APrivate",aPRK64)
+        //   const b = crypto.createECDH('secp256k1')
+        //   b.generateKeys()
+        //   const bPKBase64 = b.getPublicKey().toString('base64')
+        //   console.log("b",b,"bpk",bPKBase64)
+        //   const asK = a.computeSecret(bPKBase64,"base64","hex")
+        //   const bsK = b.computeSecret(aPKBase64,"base64","hex")
+        //   console.log("ask",asK,'bsK',bsK)
+        //   console.log("APR X BPK",bPKBase64*aPRK64)
+
+          const sK = '48a483ef009983f0d87de4e56f2d84552e7fb3f67d054921be21f500ef42aeb7'
+          const msg=alldata.message
+          const IV = crypto.randomBytes(16)
+          const cipher = crypto.createCipheriv('aes-256-gcm',Buffer.from(sK,'hex'),IV)
+          let encrypted = cipher.update(msg,'utf-8','hex')
+          encrypted+=cipher.final('hex')
+          const auth_tag = cipher.getAuthTag().toString('hex')
+
+          console.table({
+            IV: IV.toString('hex'),
+            encrypted: encrypted,
+            auth_tag: auth_tag
+          })
+          const payload1 = IV.toString('hex') + encrypted + auth_tag
+          const payload64 = Buffer.from(payload1,'hex').toString('base64')
+          console.log("64 payload",payload64)
+          alldata.message = payload64
+          
     chat1.create(alldata, (err,data) => {
         if(err)
         {
@@ -650,6 +821,24 @@ app.post('/group/messages/new', (req,res) => {
     const alldata = req.body
     var Group =require("./Group.js")
     var group1 =  Group(groupname)
+
+    const sK = '48a483ef009983f0d87de4e56f2d84552e7fb3f67d054921be21f500ef42aeb7'
+          const msg=alldata.message
+          const IV = crypto.randomBytes(16)
+          const cipher = crypto.createCipheriv('aes-256-gcm',Buffer.from(sK,'hex'),IV)
+          let encrypted = cipher.update(msg,'utf-8','hex')
+          encrypted+=cipher.final('hex')
+          const auth_tag = cipher.getAuthTag().toString('hex')
+
+          console.table({
+            IV: IV.toString('hex'),
+            encrypted: encrypted,
+            auth_tag: auth_tag
+          })
+          const payload1 = IV.toString('hex') + encrypted + auth_tag
+          const payload64 = Buffer.from(payload1,'hex').toString('base64')
+          console.log("64 payload",payload64)
+          alldata.message = payload64
 
     group1.create(alldata, (err,data) => {
         if(err)
